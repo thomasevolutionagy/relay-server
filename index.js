@@ -1,36 +1,35 @@
-const fs = require('fs');
-const https = require('https');
+const express = require('express');
+const http = require('http');
 const WebSocket = require('ws');
-const path = require('path');
 
-// Create a basic HTTPS server
-const server = https.createServer({
-  // Railway will use its own SSL certificate automatically,
-  // so we don’t need to provide cert/key files in production.
-  // But locally you would need to do that (this is a placeholder).
-}, (req, res) => {
-  res.writeHead(200);
-  res.end("WebSocket server running");
-});
+// Create an Express app (just to have an HTTP handler)
+const app = express();
+app.get('/', (req, res) => res.send("WebSocket relay is running."));
 
-// Create WebSocket server using that HTTPS server
+// Create a raw HTTP server that Express and WebSocket will share
+const server = http.createServer(app);
+
+// Attach the WebSocket server to the HTTP server
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', ws => {
-  console.log('Client connected');
-  ws.on('message', message => {
-    console.log('Received:', message);
+  console.log('✅ Client connected');
 
-    // Broadcast to all other clients
+  ws.on('message', message => {
+    console.log('💬 Received:', message);
+
+    // Broadcast to all other connected clients
     wss.clients.forEach(client => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message);
       }
     });
   });
+
+  ws.on('close', () => console.log('❌ Client disconnected'));
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
