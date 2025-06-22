@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Test</title>
+</head>
+<body>
+  <h1>WebSocket Test</h1>
+  <input id="msgInput" type="text" placeholder="Type a message..." />
+  <button onclick="sendMessage()">Send</button>
+  <pre id="log"></pre>
+
+  <script>
+    const socket = new WebSocket('wss://nodejs-production-b9a28.up.railway.app');
+    const log = document.getElementById('log');
+
+    socket.onopen = () => {
+      log.textContent += '✅ Connected to WebSocket server\n';
+    };
+
+    socket.onmessage = (event) => {
+      log.textContent += `📩 Message from server: ${event.data}\n`;
+    };
+
+    socket.onerror = (error) => {
+      log.textContent += `❌ Error: WebSocket connection error (check if server is running & using wss://)\n`;
+      console.error(event);
+    };
+
+    function sendMessage() {
+      const msg = document.getElementById('msgInput').value;
+      socket.send(msg);
+      log.textContent += `📤 Sent: ${msg}\n`;
+    }
+  </script>
+</body>
+</html>
